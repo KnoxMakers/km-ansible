@@ -1,0 +1,43 @@
+---
+- name: Bootstrap Debian host for Ansible
+  hosts: all
+  gather_facts: false
+  become: false
+
+  tasks:
+    - name: Ensure python3 is installed for Ansible modules
+      raw: |
+        if ! command -v python3 >/dev/null 2>&1; then
+          apt-get update -y
+          apt-get install -y python3
+        fi
+
+    - name: Ensure sudo is present
+      ansible.builtin.package:
+        name: sudo
+        state: present
+
+    - name: Authorize root SSH keys from local admin_keys/*.pub
+      ansible.builtin.authorized_key:
+        user: root
+        state: present
+        key: "{{ lookup('file', item) }}"
+      loop: "{{ lookup('fileglob', 'admin_keys/*.pub', wantlist=True) }}"
+      when: item is not none
+      loop_control:
+        label: "{{ item | basename }}"
+
+    - name: Disallow password SSH for root
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^PermitRootLogin'
+        line: 'PermitRootLogin prohibit-password'
+        create: false
+        backrefs: false
+      notify: Reload sshd
+
+  handlers:
+    - name: Reload sshd
+      ansible.builtin.service:
+        name: ssh
+        state: reloaded

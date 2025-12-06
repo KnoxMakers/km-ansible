@@ -1,0 +1,16 @@
+---
+# Connection defaults for all KnoxMakers laptops
+ansible_user: ansible
+ansible_become: true
+ansible_become_method: sudo
+ansible_python_interpreter: /usr/bin/python3
+
+# Base configuration
+timezone: Etc/UTC
+common_packages:
+  - ca-certificates
+  - curl
+  - git
+  - htop
+  - sudo
+  - vim

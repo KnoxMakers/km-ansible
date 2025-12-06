@@ -1,0 +1,24 @@
+---
+- name: Configure KnoxMakers Debian 13 laptops
+  hosts: knoxmakers_laptops
+  gather_facts: true
+
+  pre_tasks:
+    - name: Refresh apt cache (valid 1 day)
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 86400
+
+  tasks:
+    - name: Ensure base packages are installed
+      ansible.builtin.apt:
+        name: "{{ common_packages }}"
+        state: present
+
+    - name: Set system timezone
+      ansible.builtin.timezone:
+        name: "{{ timezone }}"
+
+    - name: Verify connectivity
+      ansible.builtin.ping:
+        data: "knoxmakers laptops ready"
