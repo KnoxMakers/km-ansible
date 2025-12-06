@@ -19,3 +19,7 @@ common_packages:
 # Shared local login for public laptops
 knoxmakers_username: knoxmakers
 knoxmakers_password_hash: "$6$UjyT19WfzCbxCh.Y$FwltTcrm3qKxDzqPUKKOCr7Czqmgpjelwu50QgM7Uh1RGbl3Rm1FLD/f2DBMSK2ozeCGEBJFrDrrtRP12ICSS0"
+
+# AppImage deployment defaults (per-app definitions go in appimages list)
+appimage_root: /opt/knoxmakers/app
+appimage_local_root: "{{ playbook_dir }}/apps"

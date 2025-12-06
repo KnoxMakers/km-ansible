@@ -25,6 +25,19 @@
         state: present
         create_home: true
 
+    - name: Deploy AppImages
+      ansible.builtin.import_tasks: tasks/appimages.yml
+      vars:
+        appimages: []
+        # Example:
+        # appimages:
+        #   - name: audacity
+        #     filename: audacity-3.5.0-x86_64.AppImage
+        #     icon: icon.png
+        #     desktop_name: Audacity
+        #     desktop_id: audacity
+        #     categories: AudioVideo;Audio;
+
     - name: Ensure Flathub remote is configured for Flatpak
       ansible.builtin.command:
         cmd: flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
