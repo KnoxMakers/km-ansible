@@ -1,0 +1,40 @@
+---
+- name: Configure KnoxMakers Debian 13 laptops
+  hosts: knoxmakers_laptops
+  gather_facts: true
+
+  pre_tasks:
+    - name: Refresh apt cache (valid 1 day)
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 86400
+
+  tasks:
+    - name: Ensure base packages are installed
+      ansible.builtin.apt:
+        name: "{{ common_packages }}"
+        state: present
+
+    - name: Ensure shared knoxmakers user exists with sudo access  # shared login on public laptops
+      ansible.builtin.user:
+        name: "{{ knoxmakers_username }}"
+        password: "{{ knoxmakers_password_hash }}"
+        shell: /bin/bash
+        groups: sudo
+        append: true
+        state: present
+        create_home: true
+
+    - name: Ensure Flathub remote is configured for Flatpak
+      ansible.builtin.command:
+        cmd: flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+      register: flathub_remote
+      changed_when: "'already exists' not in (flathub_remote.stdout + flathub_remote.stderr)"
+
+    - name: Set system timezone
+      ansible.builtin.timezone:
+        name: "{{ timezone }}"
+
+    - name: Verify connectivity
+      ansible.builtin.ping:
+        data: "knoxmakers laptops ready"
