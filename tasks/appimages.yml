@@ -10,45 +10,59 @@
     state: directory
     mode: "0755"
 
-- name: Deploy AppImages from repository assets
-  block:
-    - name: Ensure AppImage directory exists
-      ansible.builtin.file:
-        path: "{{ km_app_dir }}/{{ item.name }}"
-        state: directory
-        mode: "0755"
+- name: Ensure AppImage directory exists
+  ansible.builtin.file:
+    path: "{{ km_app_dir }}/{{ item.name }}"
+    state: directory
+    mode: "0755"
+  loop: "{{ appimages }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when: appimages | length > 0
 
-    - name: Copy AppImage binary
-      ansible.builtin.copy:
-        src: "{{ local_app_dir }}/{{ item.name }}/{{ item.filename }}"
-        dest: "{{ km_app_dir }}/{{ item.name }}/{{ item.filename }}"
-        mode: "0755"
+- name: Copy AppImage binary
+  ansible.builtin.copy:
+    src: "{{ local_app_dir }}/{{ item.name }}/{{ item.filename }}"
+    dest: "{{ km_app_dir }}/{{ item.name }}/{{ item.filename }}"
+    mode: "0755"
+  loop: "{{ appimages }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when: appimages | length > 0
 
-    - name: Copy AppImage icon
-      ansible.builtin.copy:
-        src: "{{ local_app_dir }}/{{ item.name }}/{{ item.icon | default('icon.png') }}"
-        dest: "{{ km_app_dir }}/{{ item.name }}/{{ item.icon | default('icon.png') }}"
-        mode: "0644"
+- name: Copy AppImage icon
+  ansible.builtin.copy:
+    src: "{{ local_app_dir }}/{{ item.name }}/{{ item.icon | default('icon.png') }}"
+    dest: "{{ km_app_dir }}/{{ item.name }}/{{ item.icon | default('icon.png') }}"
+    mode: "0644"
+  loop: "{{ appimages }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when: appimages | length > 0
 
-    - name: Ensure stable AppImage symlink
-      ansible.builtin.file:
-        src: "{{ km_app_dir }}/{{ item.name }}/{{ item.filename }}"
-        dest: "{{ km_app_dir }}/{{ item.name }}/{{ item.name }}.AppImage"
-        state: link
-        force: true
+- name: Ensure stable AppImage symlink
+  ansible.builtin.file:
+    src: "{{ km_app_dir }}/{{ item.name }}/{{ item.filename }}"
+    dest: "{{ km_app_dir }}/{{ item.name }}/{{ item.name }}.AppImage"
+    state: link
+    force: true
+  loop: "{{ appimages }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when: appimages | length > 0
 
-    - name: Install desktop entry for AppImage
-      ansible.builtin.copy:
-        dest: "/usr/share/applications/{{ item.desktop_id | default(item.name) }}.desktop"
-        mode: "0644"
-        content: |
-          [Desktop Entry]
-          Name={{ item.desktop_name | default(item.name) }}
-          Exec={{ km_app_dir }}/{{ item.name }}/{{ item.name }}.AppImage
-          Icon={{ km_app_dir }}/{{ item.name }}/{{ item.icon | default('icon.png') }}
-          Type=Application
-          Terminal={{ item.terminal | default('false') }}
-          Categories={{ item.categories | default('Utility;') }}
+- name: Install desktop entry for AppImage
+  ansible.builtin.copy:
+    dest: "/usr/share/applications/{{ item.desktop_id | default(item.name) }}.desktop"
+    mode: "0644"
+    content: |
+      [Desktop Entry]
+      Name={{ item.desktop_name | default(item.name) }}
+      Exec={{ km_app_dir }}/{{ item.name }}/{{ item.name }}.AppImage
+      Icon={{ km_app_dir }}/{{ item.name }}/{{ item.icon | default('icon.png') }}
+      Type=Application
+      Terminal={{ item.terminal | default('false') }}
+      Categories={{ item.categories | default('Utility;') }}
   loop: "{{ appimages }}"
   loop_control:
     label: "{{ item.name }}"
