@@ -11,7 +11,7 @@
     mode: "0755"
 
 - name: Deploy AppImages from repository assets
-  ansible.builtin.block:
+  block:
     - name: Ensure AppImage directory exists
       ansible.builtin.file:
         path: "{{ km_app_dir }}/{{ item.name }}"
