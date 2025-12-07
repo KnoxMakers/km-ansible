@@ -1,2 +1,3 @@
 [knoxmakers_laptops]
 knoxmakers-laptop[0:9]
+localhost ansible_connection=local
