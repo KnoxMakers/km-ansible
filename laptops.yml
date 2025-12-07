@@ -109,6 +109,12 @@
               WantedBy=timers.target
 
         - name: Install resume hook for ansible-pull
+          ansible.builtin.file:
+            path: /lib/systemd/system-sleep
+            state: directory
+            mode: '0755'
+
+        - name: Deploy resume hook for ansible-pull
           ansible.builtin.copy:
             dest: /lib/systemd/system-sleep/km-ansible-pull
             mode: '0755'
