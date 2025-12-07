@@ -34,8 +34,7 @@
           - cython3
           - hplip
           - inkscape
-          - python3-libusb
-          - python3-matploglib
+          - python3-matplotlib
           - python3-wxgtk4.0
       ansible.builtin.apt:
         name: "{{ laptop_packages }}"
