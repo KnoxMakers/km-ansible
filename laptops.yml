@@ -1,6 +1,6 @@
 ---
 - name: Configure KnoxMakers Debian 13 laptops
-  hosts: knoxmakers_laptops
+  hosts: knoxmakers_laptops,localhost
   gather_facts: true
 
   pre_tasks:
