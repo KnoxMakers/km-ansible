@@ -1,12 +1,12 @@
 ---
 # Deploy AppImages from repository assets. Expects:
-# - appimage_root: destination root, e.g., /opt/knoxmakers/app
-# - appimage_local_root: source root in repo, e.g., {{ playbook_dir }}/apps
+# - km_app_dir: destination root, e.g., /opt/knoxmakers/app
+# - local_app_dir: source root in repo, e.g., {{ playbook_dir }}/apps
 # - appimages: list of app definitions (can be empty)
 
 - name: Ensure AppImage root exists
   ansible.builtin.file:
-    path: "{{ appimage_root }}"
+    path: "{{ km_app_dir }}"
     state: directory
     mode: "0755"
 
@@ -14,26 +14,26 @@
   ansible.builtin.block:
     - name: Ensure AppImage directory exists
       ansible.builtin.file:
-        path: "{{ appimage_root }}/{{ item.name }}"
+        path: "{{ km_app_dir }}/{{ item.name }}"
         state: directory
         mode: "0755"
 
     - name: Copy AppImage binary
       ansible.builtin.copy:
-        src: "{{ appimage_local_root }}/{{ item.name }}/{{ item.filename }}"
-        dest: "{{ appimage_root }}/{{ item.name }}/{{ item.filename }}"
+        src: "{{ local_app_dir }}/{{ item.name }}/{{ item.filename }}"
+        dest: "{{ km_app_dir }}/{{ item.name }}/{{ item.filename }}"
         mode: "0755"
 
     - name: Copy AppImage icon
       ansible.builtin.copy:
-        src: "{{ appimage_local_root }}/{{ item.name }}/{{ item.icon | default('icon.png') }}"
-        dest: "{{ appimage_root }}/{{ item.name }}/{{ item.icon | default('icon.png') }}"
+        src: "{{ local_app_dir }}/{{ item.name }}/{{ item.icon | default('icon.png') }}"
+        dest: "{{ km_app_dir }}/{{ item.name }}/{{ item.icon | default('icon.png') }}"
         mode: "0644"
 
     - name: Ensure stable AppImage symlink
       ansible.builtin.file:
-        src: "{{ appimage_root }}/{{ item.name }}/{{ item.filename }}"
-        dest: "{{ appimage_root }}/{{ item.name }}/{{ item.name }}.AppImage"
+        src: "{{ km_app_dir }}/{{ item.name }}/{{ item.filename }}"
+        dest: "{{ km_app_dir }}/{{ item.name }}/{{ item.name }}.AppImage"
         state: link
         force: true
 
@@ -44,8 +44,8 @@
         content: |
           [Desktop Entry]
           Name={{ item.desktop_name | default(item.name) }}
-          Exec={{ appimage_root }}/{{ item.name }}/{{ item.name }}.AppImage
-          Icon={{ appimage_root }}/{{ item.name }}/{{ item.icon | default('icon.png') }}
+          Exec={{ km_app_dir }}/{{ item.name }}/{{ item.name }}.AppImage
+          Icon={{ km_app_dir }}/{{ item.name }}/{{ item.icon | default('icon.png') }}
           Type=Application
           Terminal={{ item.terminal | default('false') }}
           Categories={{ item.categories | default('Utility;') }}

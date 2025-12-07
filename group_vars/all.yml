@@ -6,6 +6,7 @@ ansible_become_method: sudo
 ansible_python_interpreter: /usr/bin/python3
 
 # Base configuration
+km_base: /opt/knoxmakers
 timezone: Etc/UTC
 common_packages:
   - ca-certificates
@@ -21,5 +22,6 @@ knoxmakers_username: knoxmakers
 knoxmakers_password_hash: "$6$UjyT19WfzCbxCh.Y$FwltTcrm3qKxDzqPUKKOCr7Czqmgpjelwu50QgM7Uh1RGbl3Rm1FLD/f2DBMSK2ozeCGEBJFrDrrtRP12ICSS0"
 
 # AppImage deployment defaults (per-app definitions go in appimages list)
-appimage_root: /opt/knoxmakers/app
-appimage_local_root: "{{ playbook_dir }}/apps"
+km_app_dir: "{{ km_base }}/app"
+km_bin_dir: "{{ km_base }}/bin"
+local_app_dir: "{{ playbook_dir }}/apps"

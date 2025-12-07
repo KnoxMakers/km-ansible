@@ -17,11 +17,117 @@
 
     - name: Ensure laptop-specific packages are installed
       vars:
-        laptop_packages: []  # set your laptop-only package list here
+        laptop_packages:
+          - ansible
+          - gnome-tweaks
+          - gimp
+          - vlc
+          - neofetch
+          - libreoffice
+          - python3-pip
+          - python3-serial
+          - python3-usb
+          - python3-ezdxf
+          - python3-opencv
+          - python3-numba
+          - python3-minieigen
+          - cmake
+          - cython3
+          - hplip
+          - inkscape
+          - python3-libusb
+          - python3-matploglib
+          - python3-wxgtk4.0
       ansible.builtin.apt:
         name: "{{ laptop_packages }}"
         state: present
       when: (laptop_packages | default([])) | length > 0
+
+    - name: Configure automatic ansible-pull on boot and resume
+      vars:
+        ansible_pull_repo: https://github.com/knoxmakers/km-ansible.git
+        ansible_pull_branch: main
+        ansible_pull_playbook: laptops.yml
+      block:
+        - name: Ensure km base directory exists
+          ansible.builtin.file:
+            path: "{{ km_base }}"
+            state: directory
+            mode: '0755'
+
+        - name: Ensure km bin directory exists
+          ansible.builtin.file:
+            path: "{{ km_bin_dir }}"
+            state: directory
+            mode: '0755'
+
+        - name: Install ansible-pull helper script
+          ansible.builtin.copy:
+            dest: "{{ km_bin_dir }}/km-ansible-pull.sh"
+            mode: '0755'
+            owner: root
+            group: root
+            content: |
+              #!/bin/sh
+              set -e
+              ansible-pull -U "{{ ansible_pull_repo }}" -C "{{ ansible_pull_branch }}" "{{ ansible_pull_playbook }}" -i localhost, --connection=local
+
+        - name: Install systemd service for ansible-pull
+          ansible.builtin.copy:
+            dest: /etc/systemd/system/km-ansible-pull.service
+            mode: '0644'
+            owner: root
+            group: root
+            content: |
+              [Unit]
+              Description=Run ansible-pull to configure laptop
+              After=network-online.target
+              Wants=network-online.target
+
+              [Service]
+              Type=oneshot
+              ExecStart={{ km_bin_dir }}/km-ansible-pull.sh
+
+              [Install]
+              WantedBy=multi-user.target
+
+        - name: Install systemd timer for ansible-pull
+          ansible.builtin.copy:
+            dest: /etc/systemd/system/km-ansible-pull.timer
+            mode: '0644'
+            owner: root
+            group: root
+            content: |
+              [Unit]
+              Description=Run ansible-pull at boot and periodically
+
+              [Timer]
+              OnBootSec=2min
+              OnUnitActiveSec=30min
+              Unit=km-ansible-pull.service
+              Persistent=true
+
+              [Install]
+              WantedBy=timers.target
+
+        - name: Install resume hook for ansible-pull
+          ansible.builtin.copy:
+            dest: /lib/systemd/system-sleep/km-ansible-pull
+            mode: '0755'
+            owner: root
+            group: root
+            content: |
+              #!/bin/sh
+              if [ "$1" = "post" ]; then
+                systemctl start km-ansible-pull.service
+              fi
+
+        - name: Enable ansible-pull timer
+          ansible.builtin.systemd:
+            name: km-ansible-pull.timer
+            enabled: true
+            state: started
+            daemon_reload: true
 
     - name: Ensure shared knoxmakers user exists with sudo access  # shared login on public laptops
       ansible.builtin.user:
