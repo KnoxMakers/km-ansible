@@ -15,6 +15,14 @@
         name: "{{ common_packages }}"
         state: present
 
+    - name: Ensure laptop-specific packages are installed
+      vars:
+        laptop_packages: []  # set your laptop-only package list here
+      ansible.builtin.apt:
+        name: "{{ laptop_packages }}"
+        state: present
+      when: (laptop_packages | default([])) | length > 0
+
     - name: Ensure shared knoxmakers user exists with sudo access  # shared login on public laptops
       ansible.builtin.user:
         name: "{{ knoxmakers_username }}"
